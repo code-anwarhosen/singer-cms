@@ -1,0 +1,54 @@
+{% extends 'user_base.html' %}
+
+
+{% block user_content %}
+<div class="auth-card">
+    <div class="profile-header">
+        {% if user.avatar %}
+            <img src="{{ user.avatar.url }}" class="profile-avatar">
+        {% else %}
+            <div class="profile-avatar" style="background-color: var(--input-bg);"></div>
+        {% endif %}
+        
+        <h1 class="profile-username">@{{ user.username }}</h1>
+        
+        {% if user.first_name or user.last_name %}
+            <div class="profile-name">
+                {{ user.first_name }} {{ user.last_name }}
+            </div>
+        {% endif %}
+        
+        {% if user.bio %}
+            <div class="profile-bio">{{ user.bio }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="profile-details">
+        <div class="detail-item">
+            <div class="detail-label">Email</div>
+            <div class="detail-value">{{ user.email }}</div>
+        </div>
+        
+        <div class="detail-item">
+            <div class="detail-label">Member since</div>
+            <div class="detail-value">{{ user.date_joined|date:"F j, Y" }}</div>
+        </div>
+        
+        {% if user.last_login %}
+            <div class="detail-item">
+                <div class="detail-label">Last login</div>
+                <div class="detail-value">{{ user.last_login|date:"F j, Y H:i" }}</div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="auth-footer" style="margin-top: 2rem;">
+        <a href="{% url 'update_profile' %}" class="auth-btn">Edit Profile</a>
+        <div style="margin-top: 1rem;">
+            <a href="{% url 'password_change' %}" class="auth-link">Change Password</a>
+            <span style="margin: 0 10px;">•</span>
+            <a href="{% url 'profile' %}" class="auth-link">Back to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock user_content %}
