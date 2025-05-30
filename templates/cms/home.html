@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Home{% endblock title %}
+
+
+{% block content %}
+<main class="text-gray-100">
+    <div class="max-w-4xl mx-auto p-6">
+        <!-- Search Container -->
+        <div class="mb-6">
+            <div class="relative">
+                <div class="flex items-center bg-gray-800/50 rounded-full">
+                    <div class="absolute inset-y-0 left-1 pl-4 flex items-center pointer-events-none text-gray-400">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <input
+                        type="text" id="searchField" placeholder="Search records..."
+                        class="w-full pl-12 pr-24 py-3 bg-transparent focus:outline-none focus:ring-0"
+                    >
+                    <div class="absolute right-1 inset-y-0 flex items-center">
+                        <select id="filterField"
+                            class="bg-gray-800 rounded-full pl-2 py-2 text-gray-400 focus:outline-none focus:ring-0"
+                        >
+                            <option value="account">Account</option>
+                            <option value="name">Name</option>
+                            <option value="phone">Phone</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Container -->
+        <div class="bg-gray-800/40 backdrop-blur-sm rounded-2xl border border-gray-700/50 shadow-2xl overflow-hidden">
+            <!-- List Header -->
+            <div class="hidden md:grid grid-cols-6 gap-4 px-6 py-3 bg-gray-800/30 border-b border-gray-700/50">
+                <div class="col-span-2 font-medium text-gray-400">Customer Name</div>
+                <div class="col-span-2 font-medium text-gray-400">Phone</div>
+                <div class="font-medium text-gray-400">Account</div>
+                <div class="font-medium text-gray-400 text-right">Balance</div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="p-8 text-center text-gray-400">
+                <i class="fas fa-spinner fa-spin text-3xl mb-4"></i>
+                <p>Loading...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden p-8 text-center text-gray-400">
+                <i class="fas fa-folder-open text-3xl mb-4"></i>
+                <p>No records found</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="hidden p-8 text-center text-red-400">
+                <i class="fas fa-exclamation-triangle text-3xl mb-4"></i>
+                <p>Data load failed. Please refresh the page.</p>
+            </div>
+
+            <!-- Data List -->
+            <div id="dataList" class="hidden scroll-container divide-y divide-gray-700/30 max-h-[60vh] overflow-y-auto">
+                <!-- Data items will be inserted here -->
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock content %}
+
+
+{% block js %}
+    <script src="{% static 'js/homePageJs.js' %}"></script>
+{% endblock js %}

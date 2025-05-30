@@ -1,0 +1,45 @@
+
+/* Mobile menu animation - navbar */
+.mobile-menu {
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+.mobile-menu.active {
+    transform: translateX(0);
+}
+
+/* Overlay for mobile menu */
+.overlay {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
+}
+.overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+/* <<=================== Navbar - END ===================>> */
+
+
+
+
+@keyframes itemEntry {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.data-item {
+    animation: itemEntry 0.3s ease forwards;
+    opacity: 0;
+}
+.scroll-container::-webkit-scrollbar {
+    width: 6px;
+    background: #2d3748;
+    border-radius: 4px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+    background: #4a5568;
+    border-radius: 4px;
+}
+/* <<=================== HOME Page - END ===================>> */
