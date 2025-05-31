@@ -87,11 +87,11 @@ class Account(models.Model):
 class Contract(models.Model):
     account = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='contract')
     
-    cash_price = models.PositiveIntegerField(blank=True, null=True)
-    hire_price = models.PositiveIntegerField(blank=True, null=True)
+    cash_price = models.PositiveIntegerField(default=0, blank=True)
+    hire_price = models.PositiveIntegerField(default=0, blank=True)
 
     down_payment = models.PositiveIntegerField()
-    total_paid = models.PositiveIntegerField(blank=True, null=True, editable=False)
+    total_paid = models.PositiveIntegerField(default=0, editable=False)
     
     monthly_payment = models.PositiveIntegerField(blank=True, null=True)
     tenure = models.PositiveIntegerField(default=12)
@@ -112,11 +112,6 @@ class Contract(models.Model):
     class Meta:
         ordering = ['-id']
         
-    def save(self, *args, **kwargs):
-        payments_total = self.payments.aggregate(models.Sum('amount'))['amount__sum'] or 0
-        self.total_paid = (payments_total + (self.down_payment or 0))
-        super().save(*args, **kwargs)
-
     def __str__(self):
         if self.account:
             return self.account.acc_num
@@ -131,4 +126,3 @@ class Payment(models.Model):
 
     class Meta:
         ordering = ['-date']
-
