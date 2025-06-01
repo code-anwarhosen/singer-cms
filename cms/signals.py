@@ -5,8 +5,13 @@ from cms.models import Contract, Payment
 
 def recalculate_total_paid(contract):
     payments_total = contract.payments.aggregate(total=models.Sum('amount'))['total'] or 0
-    contract.total_paid = (contract.down_payment or 0) + payments_total
-    contract.save(update_fields=['total_paid'])
+    calculated_total = (contract.down_payment or 0) + payments_total
+
+    # Only save if value changed to prevent recursion
+    if contract.total_paid != calculated_total:
+        contract.total_paid = calculated_total
+        contract.save(update_fields=['total_paid'])
+
 
 
 @receiver(post_save, sender=Payment)

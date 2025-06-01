@@ -10,7 +10,6 @@ def user_profile(request):
     return render(request, 'user/profile.html')
 
 
-@login_required
 def user_logout(request):
     if request.user.is_authenticated:
         logout(request)
@@ -25,7 +24,7 @@ def user_login(request):
         if form.is_valid():
             login(request, form.user)
             messages.success(request, 'Login Successful!')
-            return redirect('profile')
+            return redirect('home')
     else:
         form = UserLoginForm()
     return render(request, 'user/login.html', {'form': form})
