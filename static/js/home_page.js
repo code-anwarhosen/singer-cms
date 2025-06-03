@@ -14,7 +14,7 @@ const DOM = {
 const renderData = (data) => {
     DOM.dataList.innerHTML = data.map((item, index) => `
         <a href="/account/get/${item.pk}/" class="data-item grid grid-cols-3 md:grid-cols-6 gap-4 items-center px-6 py-2 hover:bg-gray-700/20 transition-all" 
-           style="animation-delay: ${index * 50}ms">
+           style="animation-delay: ${index * 40}ms">
             <div class="col-span-2 flex items-center gap-4">
                 <img src="${item.avatar}" class="w-10 h-10 rounded-full">
                 <div>

@@ -126,3 +126,8 @@ class Payment(models.Model):
 
     class Meta:
         ordering = ['-date']
+        
+    def __str__(self):
+        if self.contract and self.contract.account:
+            return self.contract.account.acc_num
+        return f"{self.receipt_id} : {self.amount}"

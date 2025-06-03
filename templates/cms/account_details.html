@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Account Details{% endblock title %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/account_details.css' %}">
+{% endblock css %}
+
+{% block content %}
+<!-- Main Container -->
+<div class="max-w-7xl mx-auto p-3 space-y-3 text-gray-100">
+
+    <!-- Header Section -->
+    <header class="bg-gray-800 rounded-xl p-6 shadow-lg">
+        <div class="flex justify-between items-start">
+            <div>
+                <!-- <h1 class="text-3xl font-bold tracking-wide text-blue-400">
+                    Shop Code
+                </h1> -->
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-400">A/C:</span>
+                        <span class="font-medium" id="hireAccountNumber">{{ account.acc_num }}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Status:</span>
+                        <span class="font-medium">
+                            {% if account.status == 'active' %}
+                                Active
+                                <button onclick="closeAccount('{{ account.acc_num }}')" class="bg-gray-300 text-gray-800 px-1 rounded">Close</button>
+                            {% else %}
+                                {{account.status}}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400">Date:</span>
+                        <span class="font-medium">{{ account.date }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <img src="" 
+                 class="w-40 h-40 rounded-lg shadow-xl">
+            </div>
+        </div>
+    </header>
+
+
+
+    <!-- Customer Information Section -->
+    <section class="bg-gray-800 rounded-xl shadow-lg">
+        <div class="w-full p-6 text-left flex justify-between items-center">
+            <h2 class="text-xl font-semibold">Customer Details</h2>
+        </div>
+
+        <div class="px-6 pb-6">
+            <div class="grid grid-cols-2 gap-6">
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-gray-400">Name:</label>
+                        <p class="font-medium">{{ account.customer.name }}</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-gray-400">Mobile:</label>
+                        <p class="font-medium">{{ account.customer.phone }}</p>
+                    </div>
+                    <div>
+                        <label class="text-gray-400">Address:</label>
+                        <p class="font-medium">{{ account.customer.address }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Product Details -->
+    <section class="bg-gray-800 rounded-xl shadow-lg">
+        <div class="w-full p-6 text-left flex justify-between items-center">
+            <h2 class="text-xl font-semibold">Product Details</h2>
+        </div>
+
+        <div class="px-6 pb-6">
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <label class="text-gray-400">Product:</label>
+                    <p class="font-medium">{{ account.product.category }}</p>
+                </div>
+                <div>
+                    <label class="text-gray-400">Model:</label>
+                    <p class="font-medium">{{ account.product.model }}</p>
+                </div>
+                <!-- <div class="col-span-2">
+                    <div class="bg-yellow-200/20 text-yellow-400 p-3 rounded-lg">
+                        Serial Number: 
+                    </div>
+                </div> -->
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Contract Terms -->
+    <section class="bg-gray-800 rounded-xl shadow-lg">
+        <div class="w-full p-6 text-left flex justify-between items-center">
+            <h2 class="text-xl font-semibold">Contract Terms</h2>
+        </div>
+        
+        <div class="px-6 pb-6">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <label class="text-gray-400">Cash Price:</label>
+                    <p class="text-xl font-semibold text-blue-400">{{ account.contract.cash_price }}</p>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-gray-400">Hire Price:</label>
+                    <p class="text-xl font-semibold text-blue-400">{{ account.contract.hire_price }}</p>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-gray-400">Down Payment:</label>
+                    <p class="text-xl font-semibold">{{ account.contract.down_payment }}</p>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-gray-400">Monthly Payment:</label>
+                    <p class="text-xl font-semibold">{{ account.contract.monthly_payment }}</p>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-gray-400">Balance:</label>
+                    <p id="cashBalance" class="text-2xl font-bold text-green-400">{{ account.contract.cash_bal }}</p>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-gray-400">Contract Length:</label>
+                    <p class="text-xl font-semibold">{{ account.contract.tenure }} Months</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+
+    <!-- Payment Schedule -->
+    <section class="bg-gray-800 rounded-xl shadow-lg">
+        <div class="w-full px-6 text-left flex justify-between items-center">
+            <h2 class="text-xl font-semibold">Payment Schedule</h2>
+
+            <div class="flex justify-between items-center">
+                <button class="p-6" title="Add new payment">
+                    <i id="openPaymentModal" class="fa-solid fa-pen-to-square text-gray-400"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="px-6 pb-6">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-700">
+                        <tr>
+                            <th class="p-3 text-left">Date</th>
+                            <th class="p-3 text-left">Receipt No</th>
+                            <th class="p-3 text-left">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsTable">
+                        {% for payment in payments %}
+                        <tr class="even:bg-gray-700 odd:bg-gray-800 hover:bg-gray-600 transition-colors">
+                            <td class="p-3">{{ payment.date }}</td>
+                            <td class="p-3">{{ payment.receipt_id }}</td>
+                            <td class="p-3">{{ payment.amount }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+
+<!-- New Payment Modal -->
+<div id="paymentModal" class="fixed z-50 hidden items-center justify-center inset-0 bg-black bg-opacity-50 backdrop-blur-sm">
+    <div class="bg-gray-800 rounded-xl w-full max-w-lg mx-4 transform transition-all duration-300">
+        
+        <!-- Header -->
+        <div class="p-6 border-b border-gray-700">
+            <div class="flex justify-between items-center">
+                <h3 class="text-2xl font-semibold text-gray-100">
+                    New Payment
+                </h3>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="px-2 py-1 text-gray-100">
+            <form id="newPaymentForm" class="modal-content overflow-y-auto p-4 space-y-4">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label class="block mb-2">Amount *</label>
+                        <input type="number" id="paymentAmount" required class="w-full bg-gray-700 rounded p-2 focus:ring-1 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block mb-2">Receipt Id *</label>
+                        <input type="text" id="receiptNumber" required class="w-full bg-gray-700 rounded p-2 focus:ring-1 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block mb-2">Payment Date *</label>
+                        <input type="date" id="paymentDate" required class="w-full bg-gray-700 rounded p-2 focus:ring-1 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-6">
+            <div class="flex justify-end space-x-3">
+                <button type="button" id="cancelModal" class="px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors">
+                    Cancel
+                </button>
+                <button id="paymentSubmitBtn" type="submit" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors">
+                    Create
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+
+{% block js %}
+    <script src="{% static 'js/account_details.js' %}"></script>
+{% endblock js %}
