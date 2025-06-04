@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from cms.models import Account, Payment
+from cms.models import Account, Payment, Product, PRODUCT_CATEGORIES
 
 @login_required
 def home(request):
@@ -100,3 +100,50 @@ def create_payment(request, pk):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'{e}'}, status=500)
 
+
+
+@login_required
+def product_list(request):
+    categories = [cat[0] for cat in PRODUCT_CATEGORIES]
+    products = Product.objects.all()
+
+    context = {
+        'categories': categories,
+        'products': products
+    }
+    return render(request, 'cms/product_list.html', context)
+
+@login_required
+def create_product(request):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        
+        required_fields = ['category', 'model']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return JsonResponse({'status': 'error', 'message': f'"{field}" is required.'}, status=400)
+
+        category = data['category']
+        model = data['model']
+
+        if not category or not model:
+            return JsonResponse({'status': 'error', 'message': 'Product category or model can\'t be empty'})
+        
+        if Product.objects.filter(model=model).exists():
+            return JsonResponse({'status': 'error', 'message': f'A product with this ({model}) model already exists!'})
+
+        Product.objects.create(category=category, model=model)
+        
+        data = {
+            'category': category,
+            'model': model
+        }
+        return JsonResponse({'status': 'success', 'message': 'successfully added product model!', 'data': data})
+
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON data.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'{e}'}, status=500)

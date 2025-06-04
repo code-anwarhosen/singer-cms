@@ -7,4 +7,7 @@ urlpatterns = [
     
     path('home/fetch-accounts/', views.get_accounts),
     path('make-payment/<str:pk>/', views.create_payment),
+    
+    path('product/list/', views.product_list, name='products'),
+    path('product/create/', views.create_product),
 ]

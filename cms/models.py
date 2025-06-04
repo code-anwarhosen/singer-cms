@@ -30,19 +30,18 @@ class Customer(models.Model):
         return self.name
 
 
+PRODUCT_CATEGORIES = (
+    ('REF', 'Refrigerator'),
+    ('FREEZER', 'Deep Freezer'),
+    ('TV', 'Television'),
+    ('AC', 'Air Conditioner'),
+    ('WM', 'Washing Machine'),
+    ('OVEN', 'Microwave Oven'),
+    ('SM', 'Sewing Machine'),
+    ('COM', 'Computer'),
+    ('OTHER', 'Others'),
+)
 class Product(models.Model):
-    PRODUCT_CATEGORIES = (
-        ('REF', 'Refrigerator'),
-        ('FREEZER', 'Deep Freezer'),
-        ('TV', 'Television'),
-        ('AC', 'Air Conditioner'),
-        ('WM', 'Washing Machine'),
-        ('OVEN', 'Microwave Oven'),
-        ('SM', 'Sewing Machine'),
-        ('COM', 'Computer'),
-        ('OTHER', 'Others'),
-    )
-
     model = models.CharField(max_length=50, unique=True, primary_key=True)
     category = models.CharField(max_length=50, choices=PRODUCT_CATEGORIES, default=PRODUCT_CATEGORIES[0][0])
 
