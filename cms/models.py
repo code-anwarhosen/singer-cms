@@ -2,29 +2,22 @@ from django.db import models
 from datetime import date
 from django.core.validators import RegexValidator
 from user.models import User
+import re
 
 class Customer(models.Model):
-    created_by = models.ForeignKey(User, 
-        on_delete=models.CASCADE, 
-        related_name='customers'
-    )
-
-    name = models.CharField(
-        max_length=50
-    )
-    phone = models.CharField(
-        max_length=11,
-        validators=[RegexValidator(regex=r'^01[3-9][0-9]{8}$', message='Enter a valid 11-digit Bangladeshi phone number.')],
-        help_text="Enter 11 digit phone number"
-    )
-    address = models.CharField(
-        max_length=500, 
-        blank=True,
-        null=True
-    )
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='customers')
+    name = models.CharField(max_length=50)
+    phone = models.CharField(max_length=11, help_text="Enter 11 digit phone number")
+    address = models.CharField(max_length=500, blank=True, null=True)
     
     class Meta:
         ordering = ['-id']
+        
+    def save(self, *args, **kwargs):
+        pattern = re.compile(r"^01[3-9][0-9]{8}$")
+        if not pattern.match(self.phone):
+            raise ValueError("Invalid phone number format")
+        super().save(*args, **kwargs)
         
     def __str__(self):
         return self.name
@@ -65,18 +58,14 @@ class Account(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, blank=True, null=True, related_name='accounts')
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, blank=True, null=True)
 
-    status = models.CharField(
-        max_length=20, 
-        choices=ACC_STATUSES, 
-        default=ACC_STATUSES[0][0], 
+    status = models.CharField(max_length=20, choices=ACC_STATUSES, default=ACC_STATUSES[0][0], 
         db_index=True  # <--- faster queries like Account.objects.filter(status="active")
     )
-    date = models.DateField(
-        default=date.today, 
+    date = models.DateField(default=date.today, 
         db_index=True # <--- faster queries like Account.objects.filter(date__year=2025)
     )
     remarks = models.CharField(max_length=255, blank=True, null=True)
-
+    
     class Meta:
         ordering = ['-acc_num']
 
