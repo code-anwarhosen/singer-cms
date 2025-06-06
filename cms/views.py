@@ -3,11 +3,20 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from cms.models import Account, Payment, Product, PRODUCT_CATEGORIES, Customer, Contract
+from cms.models import (
+    Account, Payment, 
+    Product, PRODUCT_CATEGORIES, 
+    Customer, Contract
+)
+
 
 @login_required
 def home(request):
     return render(request, 'cms/home.html')
+
+@login_required
+def dashboard(request):
+    return render(request, 'cms/dashboard.html')
 
 @login_required
 def get_accounts(request):
@@ -147,11 +156,6 @@ def create_product(request):
         return JsonResponse({'status': 'error', 'message': 'Invalid JSON data.'}, status=400)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'{e}'}, status=500)
-
-
-
-
-
 
 
 

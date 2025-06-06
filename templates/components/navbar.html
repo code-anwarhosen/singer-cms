@@ -17,6 +17,10 @@
                 </a>
 
                 {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="text-gray-300 hover:text-indigo-400 px-3 py-2 text-sm font-medium transition-colors">
+                        Dashboard
+                    </a>
+
                     <a href="{% url 'profile' %}" class="text-gray-300 hover:text-indigo-400 px-3 py-2 text-sm font-medium transition-colors">
                         Profile
                     </a>

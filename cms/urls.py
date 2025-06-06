@@ -3,6 +3,8 @@ from cms import views
 
 urlpatterns = [
     path('', views.home, name='home'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    
     path('home/fetch-accounts/', views.get_accounts),
     path('account/get/<str:pk>/', views.get_account_details),
     path('make-payment/<str:pk>/', views.create_payment),

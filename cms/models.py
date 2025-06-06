@@ -68,6 +68,12 @@ class Account(models.Model):
     
     class Meta:
         ordering = ['-acc_num']
+        
+    def save(self, *args, **kwargs):
+        pattern = re.compile(r"^[A-Z]{3}-H[0-9]+$")
+        if not pattern.match(self.acc_num):
+            raise ValueError("Invalid Account Number Format")
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.acc_num
