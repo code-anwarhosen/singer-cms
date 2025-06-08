@@ -75,15 +75,26 @@
                 Home
             </a>
 
-            {% if user.is_authenticated and user.is_staff %}
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="block text-gray-300 hover:text-indigo-400 px-3 py-2 rounded-md text-base font-medium">
+                    Dashboard
+                </a>
+                
+                <a href="{% url 'profile' %}" class="block text-gray-300 hover:text-indigo-400 px-3 py-2 rounded-md text-base font-medium">
+                    Profile
+                </a>
+                
+            {% if user.is_staff %}
                 <a href="/admin/" class="block text-gray-300 hover:text-indigo-400 px-3 py-2 rounded-md text-base font-medium">
                     Admin
                 </a>
+            {% endif %}
             {% endif %}
             
             <a href="{% url 'products' %}" class="block text-gray-300 hover:text-indigo-400 px-3 py-2 rounded-md text-base font-medium">
                 Products
             </a>
+            
             <div class="border-t border-gray-700 pt-4 space-y-1">
                 {% if request.user.is_authenticated %}
                     <a href="{% url 'create-account' %}" class="block bg-indigo-700 text-white px-6 py-2 rounded-full text-sm font-medium text-center hover:bg-indigo-900 transition-colors">
