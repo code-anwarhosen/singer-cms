@@ -4,9 +4,9 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from cms.models import (
-    Account, Payment, 
-    Product, PRODUCT_CATEGORIES, 
-    Customer, Contract
+    Account, Customer,
+    Contract, Payment,
+    Product, PRODUCT_CATEGORIES,
 )
 
 
@@ -14,9 +14,25 @@ from cms.models import (
 def home(request):
     return render(request, 'cms/home.html')
 
+
 @login_required
 def dashboard(request):
-    return render(request, 'cms/dashboard.html')
+    user = request.user
+    
+    context = {
+        "accounts": {
+            "total": user.accounts.count(),
+            "planned": user.accounts.filter(status = 'planned').count(),
+            "active": user.accounts.filter(status = 'active').count(),
+            "closed": user.accounts.filter(status = 'closed').count(),
+        },
+        
+        "planned_accounts": user.accounts.filter(status="planned"),
+        "customers": user.customers.order_by('-id')[:3],
+    }
+    
+    return render(request, 'cms/dashboard.html', context)
+
 
 @login_required
 def get_accounts(request):
@@ -28,7 +44,7 @@ def get_accounts(request):
     '''
     user = request.user
 
-    accounts = user.accounts.all()
+    accounts = user.accounts.filter(status='active')
     if not accounts:
         return JsonResponse({'success': False})
     
@@ -43,6 +59,7 @@ def get_accounts(request):
     } for acc in accounts]
     return JsonResponse({'success': True, 'accounts': serialized_data})
 
+
 @login_required
 def get_account_details(request, pk):
     account = Account.objects.filter(pk=pk).first()
@@ -52,7 +69,12 @@ def get_account_details(request, pk):
         return redirect('home')
     
     payments = account.contract.payments.all().order_by('date') if account.contract else None
-    return render(request, 'cms/account_details.html', {'account': account, 'payments': payments})
+    
+    context = {
+        'account': account, 
+        'payments': payments
+    }
+    return render(request, 'cms/account_details.html', context)
 
 
 @login_required
@@ -110,7 +132,6 @@ def create_payment(request, pk):
         return JsonResponse({'status': 'error', 'message': f'{e}'}, status=500)
 
 
-
 @login_required
 def product_list(request):
     categories = [cat[0] for cat in PRODUCT_CATEGORIES]
@@ -121,6 +142,7 @@ def product_list(request):
         'products': products
     }
     return render(request, 'cms/product_list.html', context)
+
 
 @login_required
 def create_product(request):
@@ -166,7 +188,23 @@ def create_account(request):
     
     # if this condition true, return the template
     if request.method == 'GET':
-        return render(request, 'cms/acc_creation_form.html')
+        
+        action = request.GET.get('action')
+        acc_num = request.GET.get('acc_num')
+        
+        context = {
+            "update": False, 
+            "account": None, 
+            "contract": None
+        }
+        if acc_num and action == 'update':
+            account = user.accounts.filter(acc_num=acc_num).first()
+            
+            context["update"] = True
+            context["account"] = account
+            context["contract"] = account.contract if account else None
+        
+        return render(request, 'cms/acc_creation_form.html', context)
 
     # if post request then, procced to create account
     try:

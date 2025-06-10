@@ -39,12 +39,12 @@ class Product(models.Model):
     category = models.CharField(max_length=50, choices=PRODUCT_CATEGORIES, default=PRODUCT_CATEGORIES[0][0])
 
     def save(self, *args, **kwargs):
-        if self.model:
-            self.model = self.model.upper()
+        self.model = self.model.upper()
         super().save(*args, **kwargs)
         
     def __str__(self):
         return f'{self.category} : {self.model}'
+
 
 class Account(models.Model):
     ACC_STATUSES = (
@@ -70,13 +70,16 @@ class Account(models.Model):
         ordering = ['-acc_num']
         
     def save(self, *args, **kwargs):
-        pattern = re.compile(r"^[A-Z]{3}-H[0-9]+$")
+        pattern = re.compile(r"^[a-zA-Z]{3}-[hH][0-9]+$")
         if not pattern.match(self.acc_num):
             raise ValueError("Invalid Account Number Format")
+        
+        self.acc_num = self.acc_num.upper()
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.acc_num
+
 
 class Contract(models.Model):
     account = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='contract')
@@ -110,6 +113,7 @@ class Contract(models.Model):
         if self.account:
             return self.account.acc_num
         return f'contract id - {id}'
+
 
 class Payment(models.Model):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='payments')
