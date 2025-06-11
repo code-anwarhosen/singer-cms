@@ -183,7 +183,7 @@ def create_product(request):
 
 # ----------- Create Account -------------#
 @login_required
-def create_account(request):
+def acc_create_update(request):
     user = request.user
     
     # if this condition true, return the template
@@ -204,10 +204,16 @@ def create_account(request):
             context["account"] = account
             context["contract"] = account.contract if account else None
         
-        return render(request, 'cms/acc_creation_form.html', context)
+        return render(request, 'cms/acc_create_update_form.html', context)
+
+
 
     # if post request then, procced to create account
     try:
+        if not request.method == 'POST':
+            return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+            
+            
         data = json.loads(request.body)
         
         # Validate required fields
@@ -218,14 +224,12 @@ def create_account(request):
             if field not in data or not data[field]:
                 return JsonResponse({'status': 'error', 'message': f'"{field}" is required.'}, status=400)
 
+
         account_number = data['accountNumber']
         customer_uid = data['customerUid']
         selected_model = data['selectedModel']
 
-        # Check if account already exists
-        if Account.objects.filter(acc_num=account_number.upper()).exists():
-            return JsonResponse({'status': 'error', 'message': f'An account already exists with this "{account_number}" account number.'}, status=400)
-
+        
         # Check for customer
         customer = Customer.objects.filter(pk=customer_uid).first()
         if not customer:
@@ -235,26 +239,73 @@ def create_account(request):
         product = Product.objects.filter(model=selected_model).first()
         if not product:
             return JsonResponse({'status': 'error', 'message': 'There is no product associated with the selected model.'}, status=400)
+        
+        
+        sale_date = data['saleDate']
+        try:
+            cash_price=int(data['cashValue'])
+            hire_price=int(data['hireValue'])
+            down_payment=int(data['downPayment'])
+            monthly_payment=int(data['monthlyPayment'])
+            tenure=int(data['length'])
+        except Exception as e:
+            return JsonResponse({'status': 'success', 'message': 'Contract data validation error.'})
 
+        
+        
+        action = request.GET.get('action')
+        if action == 'update':
+            
+            account = Account.objects.filter(
+                acc_num=account_number
+            ).first()
+            if not account:
+                return JsonResponse({'status': 'error', 'message': f'Account does not exists with this "{account_number}" account number.'}, status=400)
+        
+            if account.created_by != user:
+                return JsonResponse({'status': 'error', 'message': f'You are not authorized to modify this account.'}, status=400)
+            
+            account.customer = customer
+            account.product = product
+            account.status = 'active'
+            account.save()
+            
+            contract = account.contract
+            contract.cash_price = cash_price
+            contract.hire_price = hire_price
+            contract.down_payment = down_payment
+            contract.monthly_payment = monthly_payment
+            contract.tenure = tenure
+            contract.save()
+            
+            return JsonResponse({
+                'status': 'success', 
+                'message': 'Account updated successful!', 
+                'data': {'accountNumber': account.acc_num
+            }})
+        
+            
+        # Check if account already exists
+        if Account.objects.filter(acc_num=account_number.upper()).exists():
+            return JsonResponse({'status': 'error', 'message': f'An account already exists with this "{account_number}" account number.'}, status=400)
+        
         # Create account
         account = Account.objects.create(
-            created_by=user, acc_num=account_number, date=data['saleDate'], 
-            customer=customer, product=product, status='active'
+            created_by=user, acc_num=account_number, 
+            date=sale_date, customer=customer, 
+            product=product, status='active'
         )
 
-        # Create contract
-        try:
-            contract = Contract.objects.create(
-                account=account,
-                cash_price=int(data['cashValue']),
-                hire_price=int(data['hireValue']),
-                down_payment=int(data['downPayment']),
-                monthly_payment=int(data['monthlyPayment']),
-                tenure=int(data['length'])
-            )
-        except Exception as e:
-            return JsonResponse({'status': 'success', 'message': 'Account created successfully, but there might be issues with the contract information.'})
-
+        # Create Contract
+        Contract.objects.create(
+            account=account,
+            cash_price=cash_price,
+            hire_price=hire_price,
+            down_payment=down_payment,
+            monthly_payment=monthly_payment,
+            tenure=tenure
+        )
+        
         return JsonResponse({
             'status': 'success', 
             'message': 'Account created successfully!', 

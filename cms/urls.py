@@ -12,7 +12,7 @@ urlpatterns = [
     path('product/list/', views.product_list, name='products'),
     path('product/create/', views.create_product),
     
-    path('account/create/', views.create_account, name='create-account'),
+    path('account/create/', views.acc_create_update, name='create-account'),
     path('account/precreation-data/', views.pre_creation_data),
     path('customer/create/', views.create_customer),
 ]

@@ -27,7 +27,9 @@ const UIDOM = {
 };
 
 
-setSaleDate(UIDOM.saleDate);
+if (!UIDOM.saleDate.value) {
+    setSaleDate(UIDOM.saleDate);
+}
 
 
 // Global data storage
@@ -286,7 +288,9 @@ async function submitForm() {
     UIDOM.createAccountBtn.innerHTML = 'Submitting...';
 
     try {
-        const response = await fetch('/account/create/', {
+        const action = document.querySelector('input[name=action]')?.value ?? '';
+        
+        const response = await fetch('/account/create/?action=' + action, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -330,7 +334,7 @@ window.onclick = function(event) {
     }
 };
 
-UIDOM.createAccountBtn.addEventListener('click', () => {
+UIDOM.createAccountBtn?.addEventListener('click', () => {
     submitForm();
 });
 
