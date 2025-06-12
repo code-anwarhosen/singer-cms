@@ -15,4 +15,6 @@ urlpatterns = [
     path('account/create/', views.acc_create_update, name='create-account'),
     path('account/precreation-data/', views.pre_creation_data),
     path('customer/create/', views.create_customer),
+    
+    path('upload-bcb/', views.upload_bcb, name='upload_bcb'),
 ]

@@ -8,6 +8,7 @@ from cms.models import (
     Contract, Payment,
     Product, PRODUCT_CATEGORIES,
 )
+from cms.utils import read_bcb_file
 
 
 @login_required
@@ -417,4 +418,28 @@ def create_customer(request):
 
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': 'An error occurred while creating the customer.'}, status=500)
+
+
+@login_required
+def upload_bcb(request):
+    data = []
+    
+    if request.method == 'POST':
+        uploaded_file = request.FILES.get('file')
+        date = request.POST.get('date')
+        
+        data = read_bcb_file(uploaded_file, date=date)
+        
+        if data:
+            for item in data:
+                #print(item)
+                pass
+            print(len(data))
+        
+        else:
+            print("No Data")
+        
+    return render(request, 'cms/upload_bcb.html', {'data': data})
+
+
 

@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload File{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-[calc(100vh-160px)] p-4">
+    <div class="w-full max-w-4xl space-y-6">  <!-- Increased max width for table -->
+        <!-- Upload Card -->
+        <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+            <div class="p-6">
+                <div class="text-center mb-6">
+                    <svg class="mx-auto h-12 w-12 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <h2 class="mt-2 text-xl font-bold text-white">Daily File Upload</h2>
+                    <p class="mt-1 text-sm text-gray-400">Select your .xls, .xlsx or .txt file</p>
+                </div>
+                
+                <form method="post" enctype="multipart/form-data" id="uploadForm" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="file_date" class="block text-sm font-medium text-gray-300 mb-1">Report Date</label>
+                            <input 
+                                type="date" 
+                                name="date" 
+                                id="file_date"
+                                class="w-full bg-gray-700 border border-gray-600 rounded-lg py-2 px-3 text-white focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                        </div>
+                        
+                        <div>
+                            <label for="fileInput" class="block text-sm font-medium text-gray-300 mb-1">Select File</label>
+                            <input 
+                                type="file"
+                                name="file"
+                                id="fileInput"
+                                accept=".xls"
+                                class="block w-full text-sm text-gray-400
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-lg file:border-0
+                                    file:text-sm file:font-medium
+                                    file:bg-indigo-600 file:text-white
+                                    hover:file:bg-indigo-700
+                                    cursor-pointer
+                                    bg-gray-700 rounded-lg"
+                                required>
+                        </div>
+                    </div>
+                    
+                    <button
+                        type="submit"
+                        id="submitBtn"
+                        class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition duration-150 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled>
+                        <span>Upload File</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if data %}
+        <!-- Data Table Card -->
+        <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-700">
+            <div class="p-6">
+                <h3 class="text-lg font-bold text-white mb-4">Uploaded Data</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-700">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                {% for header in data.0 %}
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                    {{ header }}
+                                </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody class="bg-gray-800 divide-y divide-gray-700">
+                            {% for row in data|slice:"1:" %}
+                            <tr class="hover:bg-gray-700">
+                                {% for cell in row %}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                    {{ cell }}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('fileInput');
+    const dateInput = document.getElementById('file_date');
+    const submitBtn = document.getElementById('submitBtn');
+    const uploadForm = document.getElementById('uploadForm');
+    
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    // dateInput.value = today;
+    
+    // Enable submit button when both file and date are selected
+    function checkForm() {
+        submitBtn.disabled = !(fileInput.files && fileInput.files.length > 0);
+    }
+    
+    fileInput.addEventListener('change', checkForm);
+    dateInput.addEventListener('change', checkForm);
+    
+    // Show loading state during upload
+    uploadForm.addEventListener('submit', function() {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Uploading...
+        `;
+    });
+});
+</script>
+{% endblock %}
