@@ -8,7 +8,7 @@ from cms.models import (
     Contract, Payment,
     Product, PRODUCT_CATEGORIES,
 )
-from cms.utils import read_bcb_file
+from cms.utils import read_bcb_file, Vouchar, parse_date
 
 
 @login_required
@@ -420,26 +420,80 @@ def create_customer(request):
         return JsonResponse({'status': 'error', 'message': 'An error occurred while creating the customer.'}, status=500)
 
 
+# ----------- Upload BCB -------------#
 @login_required
-def upload_bcb(request):
-    data = []
+def upload_preview_bcb(request):
+    data = list()
     
     if request.method == 'POST':
         uploaded_file = request.FILES.get('file')
         date = request.POST.get('date')
         
         data = read_bcb_file(uploaded_file, date=date)
-        
-        if data:
-            for item in data:
-                #print(item)
-                pass
-            print(len(data))
-        
-        else:
-            print("No Data")
-        
-    return render(request, 'cms/upload_bcb.html', {'data': data})
+        print(len(data))
+    context = {
+        'data': data,
+        'json_data': json.dumps(data)
+    }
+    return render(request, 'cms/upload_preview_bcb.html', context)
 
 
+def save_to_db(user, row_data: dict):
+    if not row_data and not isinstance(row_data, dict):
+        return None
+    
+    receipt_id = row_data['receipt_id']
+    acc_num = row_data['account']
+    amount = row_data['amount']
+    date = row_data['date']
+    
+    if not (acc_num or receipt_id or amount or date or type):
+        return None
+        
+    if Vouchar.is_downpayment(receipt_id):
+        account = Account.objects.create(
+            created_by=user,
+            acc_num=acc_num,
+            date=parse_date(date),
+        )
+        
+        Contract.objects.create(
+            account=account,
+            downpayment=amount
+        )
+        return True
+    
+    elif Vouchar.is_collection(receipt_id):
+        account = user.accounts.filter(acc_num=acc_num).first()
+        if not account:
+            return None
+        
+        Payment.objects.create(
+            contract=account.contract,
+            amount=amount,
+            receipt_id=receipt_id,
+            date=date
+        )
+        return True
+    
+
+@login_required
+def save_bcb(request):
+    user = request.user
+    
+    if request.method == "POST":
+        json_data = request.POST.get("json_data")
+        try:
+            success = fail = 0
+            data = json.loads(json_data)
+            for row in data:
+                if save_to_db(user, row):
+                    success += 1
+                else: fail += 1
+            messages.success(request, f"{success} added successful and {fail} failed adding")
+            
+        except Exception as e:
+            messages.error(request, f"Error: {e}")
+            
+    return redirect("upload_bcb")
 
