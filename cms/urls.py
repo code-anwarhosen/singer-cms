@@ -17,5 +17,5 @@ urlpatterns = [
     path('customer/create/', views.create_customer),
     
     path('upload-bcb/', views.upload_preview_bcb, name='upload_bcb'),
-    path('save-bcb/', views.save_bcb, name='save_bcb'),
+    path('save-bcb/', views.save_bcb_data, name='save_bcb'),
 ]

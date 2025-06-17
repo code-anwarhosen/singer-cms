@@ -2,6 +2,7 @@ import json
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.contrib import messages
+from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from cms.models import (
     Account, Customer,
@@ -69,7 +70,7 @@ def get_account_details(request, pk):
         messages.info(request, 'The account you are trying to access does not exists!')
         return redirect('home')
     
-    payments = account.contract.payments.all().order_by('date') if account.contract else None
+    payments = account.contract.payments.all().order_by('date') if account.contract else None # type: ignore
     
     context = {
         'account': account, 
@@ -84,7 +85,7 @@ def create_payment(request, pk):
         return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
     
     account = Account.objects.filter(pk=pk).first()
-    contract = account.contract
+    contract = account.contract # type: ignore
     
     if not contract:
         return JsonResponse({'status': 'error', 'message': 'The account you\'re trying to make payment is invalid!'})
@@ -200,13 +201,13 @@ def acc_create_update(request):
         }
         if acc_num and action == 'update':
             account = user.accounts.filter(acc_num=acc_num).first()
-            
-            context["update"] = True
-            context["account"] = account
-            context["contract"] = account.contract if account else None
-        
+            if account:
+                context["update"] = True
+                context["account"] = account
+                context["contract"] = account.contract if account else None
+            else:
+                messages.error(request, "The Account you are trying to update is not found")
         return render(request, 'cms/acc_create_update_form.html', context)
-
 
 
     # if post request then, procced to create account
@@ -214,22 +215,19 @@ def acc_create_update(request):
         if not request.method == 'POST':
             return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
             
-            
-        data = json.loads(request.body)
-        
         # Validate required fields
         required_fields = ['accountNumber', 'customerUid', 'selectedModel', 'cashValue', 
             'hireValue', 'downPayment', 'monthlyPayment', 'length', 'saleDate'
         ]
+        
+        data: dict = json.loads(request.body)
         for field in required_fields:
             if field not in data or not data[field]:
                 return JsonResponse({'status': 'error', 'message': f'"{field}" is required.'}, status=400)
 
-
         account_number = data['accountNumber']
         customer_uid = data['customerUid']
         selected_model = data['selectedModel']
-
         
         # Check for customer
         customer = Customer.objects.filter(pk=customer_uid).first()
@@ -240,7 +238,6 @@ def acc_create_update(request):
         product = Product.objects.filter(model=selected_model).first()
         if not product:
             return JsonResponse({'status': 'error', 'message': 'There is no product associated with the selected model.'}, status=400)
-        
         
         sale_date = data['saleDate']
         try:
@@ -256,10 +253,7 @@ def acc_create_update(request):
         
         action = request.GET.get('action')
         if action == 'update':
-            
-            account = Account.objects.filter(
-                acc_num=account_number
-            ).first()
+            account = Account.objects.filter(acc_num=account_number).first()
             if not account:
                 return JsonResponse({'status': 'error', 'message': f'Account does not exists with this "{account_number}" account number.'}, status=400)
         
@@ -271,7 +265,7 @@ def acc_create_update(request):
             account.status = 'active'
             account.save()
             
-            contract = account.contract
+            contract = account.contract # type: ignore
             contract.cash_price = cash_price
             contract.hire_price = hire_price
             contract.down_payment = down_payment
@@ -279,13 +273,11 @@ def acc_create_update(request):
             contract.tenure = tenure
             contract.save()
             
-            return JsonResponse({
-                'status': 'success', 
-                'message': 'Account updated successful!', 
+            return JsonResponse({'status': 'success', 
+                'message': 'Account update successful!', 
                 'data': {'accountNumber': account.acc_num
             }})
         
-            
         # Check if account already exists
         if Account.objects.filter(acc_num=account_number.upper()).exists():
             return JsonResponse({'status': 'error', 'message': f'An account already exists with this "{account_number}" account number.'}, status=400)
@@ -299,12 +291,9 @@ def acc_create_update(request):
 
         # Create Contract
         Contract.objects.create(
-            account=account,
-            cash_price=cash_price,
-            hire_price=hire_price,
-            down_payment=down_payment,
-            monthly_payment=monthly_payment,
-            tenure=tenure
+            account=account, cash_price=cash_price,
+            hire_price=hire_price, down_payment=down_payment,
+            monthly_payment=monthly_payment, tenure=tenure
         )
         
         return JsonResponse({
@@ -423,14 +412,16 @@ def create_customer(request):
 # ----------- Upload BCB -------------#
 @login_required
 def upload_preview_bcb(request):
-    data = list()
+    data = []
     
     if request.method == 'POST':
         uploaded_file = request.FILES.get('file')
         date = request.POST.get('date')
         
-        data = read_bcb_file(uploaded_file, date=date)
-        print(len(data))
+        data: list[dict] = read_bcb_file(uploaded_file, date=date)
+        if not data: messages.success(request, "Data not found")
+        print('Number of item :', len(data))
+        
     context = {
         'data': data,
         'json_data': json.dumps(data)
@@ -438,62 +429,67 @@ def upload_preview_bcb(request):
     return render(request, 'cms/upload_preview_bcb.html', context)
 
 
-def save_to_db(user, row_data: dict):
+def save_item_to_db(user, row_data: dict) -> bool:
+    '''
+    Helper function for save_bcb_data
+    '''
     if not row_data and not isinstance(row_data, dict):
-        return None
+        return False
     
-    receipt_id = row_data['receipt_id']
-    acc_num = row_data['account']
-    amount = row_data['amount']
-    date = row_data['date']
-    
-    if not (acc_num or receipt_id or amount or date or type):
-        return None
+    try:
+        acc_num = str(row_data['account'])
+        receipt_id = str(row_data['receipt_id'])
+        amount = int(row_data['amount'])
+        date = parse_date(row_data['date'])
         
-    if Vouchar.is_downpayment(receipt_id):
-        account = Account.objects.create(
-            created_by=user,
-            acc_num=acc_num,
-            date=parse_date(date),
-        )
+        if not (acc_num or receipt_id or amount or date):
+            return False
+            
+        if Vouchar.is_downpayment(receipt_id):
+            if Account.objects.filter(acc_num=acc_num).exists():
+                return False
+            
+            with transaction.atomic():
+                account = Account.objects.create(
+                    created_by=user, acc_num=acc_num, date=date,
+                )
+                Contract.objects.create(account=account, down_payment=amount)
+            return True
         
-        Contract.objects.create(
-            account=account,
-            downpayment=amount
-        )
-        return True
-    
-    elif Vouchar.is_collection(receipt_id):
-        account = user.accounts.filter(acc_num=acc_num).first()
-        if not account:
-            return None
-        
-        Payment.objects.create(
-            contract=account.contract,
-            amount=amount,
-            receipt_id=receipt_id,
-            date=date
-        )
-        return True
+        elif Vouchar.is_collection(receipt_id):
+            if Payment.objects.filter(receipt_id=receipt_id).exists():
+                return False
+            
+            account = user.accounts.filter(acc_num=acc_num).first()
+            if not account:
+                return False
+            
+            Payment.objects.create(contract=account.contract, 
+                amount=amount, receipt_id=receipt_id, date=date
+            )
+            return True
+        return False
+    except Exception:
+        return False
     
 
 @login_required
-def save_bcb(request):
+def save_bcb_data(request):
     user = request.user
     
     if request.method == "POST":
         json_data = request.POST.get("json_data")
+        
         try:
+            data: dict = json.loads(json_data)
             success = fail = 0
-            data = json.loads(json_data)
+            
             for row in data:
-                if save_to_db(user, row):
+                if save_item_to_db(user, row):
                     success += 1
                 else: fail += 1
             messages.success(request, f"{success} added successful and {fail} failed adding")
-            
-        except Exception as e:
-            messages.error(request, f"Error: {e}")
-            
+        except Exception as error:
+            messages.error(request, f"Error: {error}")
+        
     return redirect("upload_bcb")
-

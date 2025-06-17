@@ -2,22 +2,16 @@ from io import TextIOWrapper
 from datetime import datetime, date
 import re
 
-
 def parse_date(date_str: str) -> date | None:
     """
     Parses a date string in 'YYYY-MM-DD' or 'DD-MM-YYYY' format into a date object.
     """
-    
     formats = ["%Y-%m-%d", "%d-%m-%Y"]  # Accepted formats
-
     for fmt in formats:
         try:
-            # Parse into datetime, then convert to date
             return datetime.strptime(date_str, fmt).date()
         except ValueError:
             continue  # Try next format if parsing fails
-
-    # None of the formats matched
     return None
 
 
@@ -48,33 +42,33 @@ class Vouchar:
         return None
         
 
-def read_bcb_file(uploaded_file, date=None) -> list[dict]:
+def read_bcb_file(uploaded_file, date=None) -> list | list[dict]:
     """
     Read a UTF-16 encoded tab-separated .xls file uploaded via Django
     and return selected columns as a 2D list.
     """
-    
-    if not uploaded_file.name.endswith('.xls'):
-        return []
+    data = []
+    if not uploaded_file or not uploaded_file.name.endswith('.xls'):
+        return data
 
-    # hire account, receipt, amount, date
+    # Index of columns in the .xls file
     columns = {
         'account': 4, 
         'receipt_id': 7, 
         'amount': 12, 
         'date': 18
     }
-    data = list()
 
-    # Wrap the uploaded file in a UTF-16 decoder
+    # Provided .xls file is in utf-16, so Wrap the file in a UTF-16 decoder
     text_stream = TextIOWrapper(uploaded_file.file, encoding='utf-16')
 
     for line in text_stream:
         row = line.strip().split('\t')
+        
         if not max(columns.values()) < len(row):
             continue
         
-        selected = dict()
+        selected = {}
         for key, val in columns.items():
             selected[key] = row[val].strip()
             
@@ -96,5 +90,5 @@ def read_bcb_file(uploaded_file, date=None) -> list[dict]:
             row for row in data 
             if parse_date(row['date']) == given_date
         ]
-    return data  # List of selected columns per row
+    return data
     
