@@ -23,14 +23,14 @@ def dashboard(request):
     
     context = {
         "accounts": {
-            "total": user.accounts.count(),
-            "planned": user.accounts.filter(status = 'planned').count(),
             "active": user.accounts.filter(status = 'active').count(),
+            "planned": user.accounts.filter(status = 'planned').count(),
             "closed": user.accounts.filter(status = 'closed').count(),
         },
         
-        "planned_accounts": user.accounts.filter(status="planned"),
-        "customers": user.customers.order_by('-id')[:3],
+        "planned_accounts": user.accounts.filter(status="planned")[:4],
+        "customers": user.customers.order_by('-id')[:4],
+        "payments": user.payments.order_by('-id')[:4]
     }
     
     return render(request, 'cms/dashboard.html', context)
@@ -81,6 +81,8 @@ def get_account_details(request, pk):
 
 @login_required
 def create_payment(request, pk):
+    user = request.user
+    
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
     
@@ -114,6 +116,7 @@ def create_payment(request, pk):
             return JsonResponse({'status': 'error', 'message': f'"{receiptNumber}" this receipt ID already exists.'})
 
         payment = Payment.objects.create(
+            created_by=user,
             contract=contract,
             date=paymentDate,
             receipt_id=receiptNumber,
@@ -148,6 +151,9 @@ def product_list(request):
 
 @login_required
 def create_product(request):
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'You are not authrized to add product.'}, status=405)
+    
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
     

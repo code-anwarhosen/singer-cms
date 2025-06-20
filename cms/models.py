@@ -38,8 +38,15 @@ class Product(models.Model):
     model = models.CharField(max_length=50, unique=True, primary_key=True)
     category = models.CharField(max_length=50, choices=PRODUCT_CATEGORIES, default=PRODUCT_CATEGORIES[0][0])
 
+    class Meta:
+        ordering = ['category', 'model']
+        
     def save(self, *args, **kwargs):
         self.model = self.model.upper()
+        
+        pattern = re.compile(r"^[A-Z]{4,6}-[A-Z0-9-]{4,30}$")
+        if not pattern.match(self.model):
+            raise ValueError("Not a valid product model.")
         super().save(*args, **kwargs)
         
     def __str__(self):
@@ -116,6 +123,7 @@ class Contract(models.Model):
 
 
 class Payment(models.Model):
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payments')
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='payments')
     
     amount = models.PositiveIntegerField()

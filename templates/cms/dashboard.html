@@ -36,11 +36,10 @@
             <div class="flex justify-between items-start">
                 
                 <div>
-                    <p class="text-gray-400">Total Accounts</p>
-                    <h3 class="text-2xl font-bold mt-2">{{ accounts.total }}</h3>
+                    <p class="text-gray-400">Active Accounts</p>
+                    <h3 class="text-2xl font-bold mt-2">{{ accounts.active }}</h3>
                     
                     <p class="text-green-600 text-sm mt-2">{{ accounts.planned }} planned</p>
-                    <p class="text-green-400 text-sm mt-2">{{ accounts.active }} active</p>
                     <p class="text-red-400 text-sm mt-2">{{ accounts.closed }} closed</p>
                 </div>
 
@@ -92,9 +91,13 @@
 
         <!-- Recent Payments -->
         <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
-            <h2 class="text-xl font-bold mb-6">Recent Payments</h2>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Recent Payments</h2>
+                <a href="#" class="text-blue-400 hover:text-blue-300 text-sm font-medium">View All</a>
+            </div>
             <div class="space-y-4">
                 
+                {% for payment in payments %}
                 <div class="flex items-start">
                     <div class="bg-green-500/20 p-2 rounded-lg mr-4">
                         <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -102,14 +105,13 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="font-medium">৳5,000 - REC-2023-1245</p>
-                        <p class="text-gray-400 text-sm">Nov 15, 2023</p>
-                        <p class="text-gray-400 text-sm">Account: ABC-H1245</p>
+                        <p class="font-medium"> {{ payment.amount }} Tk for {{ payment.contract }} </p>
+                        <p class="text-gray-400 text-sm"> on {{ payment.date }} and Receipt ID: {{ payment.receipt_id }}</p>
                     </div>
                 </div>
+                {% endfor %}
                 
             </div>
-            <a href="#" class="mt-4 text-blue-400 hover:text-blue-300 text-sm font-medium inline-block">View All Payments</a>
         </div>
     </div>
 
