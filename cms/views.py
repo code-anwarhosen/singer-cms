@@ -139,12 +139,10 @@ def create_payment(request, pk):
 
 @login_required
 def product_list(request):
-    categories = [cat[0] for cat in PRODUCT_CATEGORIES]
-    products = Product.objects.all()
 
     context = {
-        'categories': categories,
-        'products': products
+        'categories': PRODUCT_CATEGORIES,
+        'products': Product.objects.all()
     }
     return render(request, 'cms/product_list.html', context)
 
