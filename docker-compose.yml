@@ -25,9 +25,11 @@ services:
       "
     environment:
       - DEBUG=False
-      - SECRET_KEY=django-insecure-q7le0rz@@^rj_+pst2wm3=3beh7_3jow@apsn7wwm!fsp4k1kb
+      - SECRET_KEY=django-insecure-^+t=^=p%qdx67&2^aecij2ppzb8a^xpim$$gh!!m-fhwe#4!v$
       - ALLOWED_HOSTS=cms.anwarhosen.xyz
       - DATABASE_URL=postgres://cms_user:KsNj237&Y87#T_123@cms_postgres:5432/cms_db
+      - EMAIL_HOST_USER=
+      - EMAIL_HOST_PASSWORD=
     volumes:
       - ./static:/app/static
       - ./media:/app/media
@@ -42,7 +44,7 @@ services:
     image: nginx:alpine
     container_name: cms_nginx
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx.conf:/etc/nginx/nginx.conf
       - ./static:/app/static
       - ./media:/app/media
     ports:
