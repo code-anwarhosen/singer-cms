@@ -21,7 +21,7 @@ services:
     command: >
       sh -c "
       python manage.py collectstatic --no-input &&
-      gunicorn --bind 0.0.0.0:8000 core.wsgi:application
+      gunicorn --bind 0.0.0.0:8000 base.wsgi:application
       "
     environment:
       - DEBUG=False
