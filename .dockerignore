@@ -1,0 +1,14 @@
+*.pyc
+**/__pycache__/**
+
+.venv
+env/
+venv/
+.env
+
+media/
+
+.vscode/
+.dockerignore
+Dockerfile
+docker-compose.yml
