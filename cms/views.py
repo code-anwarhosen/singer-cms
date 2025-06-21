@@ -492,7 +492,7 @@ def save_bcb_data(request):
                 if save_item_to_db(user, row):
                     success += 1
                 else: fail += 1
-            messages.success(request, f"{success} added successful and {fail} failed adding")
+            messages.success(request, f"{success} inserted and {fail} already inserted or having problem while inserting.")
         except Exception as error:
             messages.error(request, f"Error: {error}")
         

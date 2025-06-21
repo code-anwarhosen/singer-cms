@@ -70,7 +70,7 @@ function insertProductIntoTable(product={}) {
     }
 
     const productHTML = `
-        <tr class="product-item">
+        <tr class="product-item grid grid-cols-3">
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">${product.category}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">${product.model.toUpperCase()}</td>
             

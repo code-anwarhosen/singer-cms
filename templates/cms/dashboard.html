@@ -181,7 +181,11 @@
 
         <!-- Recent Customers -->
         <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
-            <h2 class="text-xl font-bold mb-6">Recent Customers</h2>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Recent Customers</h2>
+                <a href="#" class="text-blue-400 hover:text-blue-300 text-sm font-medium">View All</a>
+            </div>
+
             <div class="space-y-4">
                 
                 {% for customer in customers %}
@@ -196,7 +200,6 @@
                 {% endfor %}
                 
             </div>
-            <a href="#" class="mt-4 text-blue-400 hover:text-blue-300 text-sm font-medium inline-block">View All Customers</a>
         </div>
         
     </div>
