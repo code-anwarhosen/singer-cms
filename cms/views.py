@@ -424,7 +424,6 @@ def upload_preview_bcb(request):
         
         data: list[dict] = read_bcb_file(uploaded_file, date=date)
         if not data: messages.success(request, "Data not found")
-        print('Number of item :', len(data))
         
     context = {
         'data': data,
@@ -468,7 +467,8 @@ def save_item_to_db(user, row_data: dict) -> bool:
             if not account:
                 return False
             
-            Payment.objects.create(contract=account.contract, 
+            Payment.objects.create(
+                created_by=user, contract=account.contract, 
                 amount=amount, receipt_id=receipt_id, date=date
             )
             return True

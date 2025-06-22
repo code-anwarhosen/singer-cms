@@ -14,8 +14,11 @@ class Customer(models.Model):
         ordering = ['-id']
         
     def save(self, *args, **kwargs):
-        pattern = re.compile(r"^01[3-9][0-9]{8}$")
-        if not pattern.match(self.phone):
+        """
+        Accept only 01712345678  or
+        01912-345678 format phone number
+        """
+        if not re.match(r"^01[3-9][\d]{2}-?[\d]{6}$", self.phone):
             raise ValueError("Invalid phone number format")
         super().save(*args, **kwargs)
         
@@ -44,8 +47,7 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         self.model = self.model.upper()
         
-        pattern = re.compile(r"^[A-Z]{4,6}-[A-Z0-9-]{4,30}$")
-        if not pattern.match(self.model):
+        if not re.match(r"^[A-Z]{4,6}-[A-Z\d-/.]{4,30}$", self.model):
             raise ValueError("Not a valid product model.")
         super().save(*args, **kwargs)
         
