@@ -12,3 +12,7 @@ media/
 .dockerignore
 Dockerfile
 docker-compose.yml
+
+node_modules/
+package-lock.json
+package.json
